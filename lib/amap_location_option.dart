@@ -1,209 +1,155 @@
-import 'dart:io';
+/// 定位参数设置
+class AMapLocationOption {
+  /// 是否需要地址信息，默认true
+  bool needAddress = true;
 
-/// android网络传输http还是https协议
-enum AMapLocationProtocol { HTTP, HTTPS }
+  ///逆地理信息语言类型<br>
+  ///默认[GeoLanguage.DEFAULT] 自动适配<br>
+  ///可选值：<br>
+  ///<li>[GeoLanguage.DEFAULT] 自动适配</li>
+  ///<li>[GeoLanguage.EN] 英文</li>
+  ///<li>[GeoLanguage.ZH] 中文</li>
+  GeoLanguage geoLanguage;
 
-/// android 逆地理位置信息的语言
-enum GeoLanguage { DEFAULT, ZH, EN }
+  ///是否单次定位
+  ///默认值：false
+  bool onceLocation = false;
 
-/// android 定位模式
-enum AMapLocationMode { Battery_Saving, Device_Sensors, Hight_Accuracy }
+  ///Android端定位模式, 只在Android系统上有效<br>
+  ///默认值：[AMapLocationMode.Hight_Accuracy]<br>
+  ///可选值：<br>
+  ///<li>[AMapLocationMode.Battery_Saving]</li>
+  ///<li>[AMapLocationMode.Device_Sensors]</li>
+  ///<li>[AMapLocationMode.Hight_Accuracy]</li>
+  AMapLocationMode locationMode;
 
-/// ios定位精度
-enum CLLocationAccuracy {
-  kCLLocationAccuracyBest,
-  kCLLocationAccuracyNearestTenMeters,
-  kCLLocationAccuracyHundredMeters,
-  kCLLocationAccuracyKilometer,
-  kCLLocationAccuracyThreeKilometers,
+  ///Android端定位间隔<br>
+  ///单位：毫秒<br>
+  ///默认：2000毫秒<br>
+  int locationInterval = 2000;
+
+  ///iOS端是否允许系统暂停定位<br>
+  ///默认：false
+  bool pausesLocationUpdatesAutomatically = false;
+
+  /// iOS端期望的定位精度， 只在iOS端有效<br>
+  /// 默认值：最高精度<br>
+  /// 可选值：<br>
+  /// <li>[DesiredAccuracy.Best] 最高精度</li>
+  /// <li>[DesiredAccuracy.BestForNavigation] 适用于导航场景的高精度 </li>
+  /// <li>[DesiredAccuracy.NearestTenMeters] 10米 </li>
+  /// <li>[DesiredAccuracy.Kilometer] 1000米</li>
+  /// <li>[DesiredAccuracy.ThreeKilometers] 3000米</li>
+  DesiredAccuracy desiredAccuracy = DesiredAccuracy.Best;
+
+  /// iOS端定位最小更新距离<br>
+  /// 单位：米<br>
+  /// 默认值：-1，不做限制<br>
+  double distanceFilter = -1;
+
+  ///iOS 14中设置期望的定位精度权限
+  AMapLocationAccuracyAuthorizationMode
+      desiredLocationAccuracyAuthorizationMode =
+      AMapLocationAccuracyAuthorizationMode.FullAccuracy;
+
+  /// iOS 14中定位精度权限由模糊定位升级到精确定位时，需要用到的场景key fullAccuracyPurposeKey 这个key要和plist中的配置一样
+  String fullAccuracyPurposeKey = "";
+
+  AMapLocationOption(
+      {this.locationInterval = 2000,
+      this.needAddress = true,
+      this.locationMode = AMapLocationMode.Hight_Accuracy,
+      this.geoLanguage = GeoLanguage.DEFAULT,
+      this.onceLocation = false,
+      this.pausesLocationUpdatesAutomatically = false,
+      this.desiredAccuracy = DesiredAccuracy.Best,
+      this.distanceFilter = -1,
+      this.desiredLocationAccuracyAuthorizationMode =
+          AMapLocationAccuracyAuthorizationMode.FullAccuracy});
+
+  ///获取设置的定位参数对应的Map
+  Map getOptionsMap() {
+    return {
+      "locationInterval": this.locationInterval,
+      "needAddress": needAddress,
+      "locationMode": locationMode.index,
+      "geoLanguage": geoLanguage.index,
+      "onceLocation": onceLocation,
+      "pausesLocationUpdatesAutomatically": pausesLocationUpdatesAutomatically,
+      "desiredAccuracy": desiredAccuracy.index,
+      'distanceFilter': distanceFilter,
+      "locationAccuracyAuthorizationMode":
+          desiredLocationAccuracyAuthorizationMode.index,
+      "fullAccuracyPurposeKey": fullAccuracyPurposeKey
+    };
+  }
 }
 
-class AMapLocationOption {
-  ////////////////////////////////////////////////////////////
-  ///  以下属性为android特有
-  ////////////////////////////////////////////////////////////
+///Android端定位模式
+enum AMapLocationMode {
+  /// 低功耗模式
+  Battery_Saving,
 
-  //可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
-  final AMapLocationMode locationMode;
+  /// 仅设备模式,不支持室内环境的定位
+  Device_Sensors,
 
-  //可选，设置是否gps优先，只在高精度模式下有效。默认关闭
-  final bool gpsFirst;
+  /// 高精度模式
+  Hight_Accuracy
+}
 
-  //可选，设置网络请求超时时间(ms)。默认为30秒。在仅设备模式下无效
-  final int httpTimeOut;
+///逆地理信息语言
+enum GeoLanguage {
+  /// 默认，自动适配
+  DEFAULT,
 
-  //可选，设置定位间隔(ms)。默认为2秒
-  final int interval;
+  /// 汉语，无论在国内还是国外都返回英文
+  ZH,
 
-  //可选，设置是否返回逆地理地址信息。默认是true
-  final bool needsAddress;
+  /// 英语，无论在国内还是国外都返回中文
+  EN
+}
 
-  //可选，设置是否单次定位。默认是false
-  final bool onceLocation;
+///iOS中期望的定位精度
+enum DesiredAccuracy {
+  ///最高精度
+  Best,
 
-  //可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
-  final bool onceLocationLatest;
+  ///适用于导航场景的高精度
+  BestForNavigation,
 
-  //可选， 设置网络请求的协议。可选HTTP或者HTTPS。默认为HTTP
-  final AMapLocationProtocol locationProtocal;
+  ///10米
+  NearestTenMeters,
 
-  //可选，设置是否使用传感器。默认是false
-  final bool sensorEnable;
+  ///100米
+  HundredMeters,
 
-  //可选，设置是否开启wifi扫描。默认为true，如果设置为false会同时停止主动刷新，停止以后完全依赖于系统刷新，定位位置可能存在误差
-  final bool wifiScan;
+  ///1000米
+  Kilometer,
 
-  //可选，设置是否使用缓存定位，默认为true
-  final bool locationCacheEnable;
+  ///3000米
+  ThreeKilometers,
+}
 
-  ////////////////////////////////////////////////////////////
-  ///以下属性为ios特有
-  ////////////////////////////////////////////////////////////
-  ///设定期望的定位精度。单位米，默认为 kCLLocationAccuracyBest。
-  ///定位服务会尽可能去获取满足desiredAccuracy的定位结果，但不保证一定会得到满足期望的结果。
-  ///\n注意：设置为kCLLocationAccuracyBest或kCLLocationAccuracyBestForNavigation时，
-  ///单次定位会在达到locationTimeout设定的时间后，将时间内获取到的最高精度的定位结果返回。
-  final CLLocationAccuracy desiredAccuracy;
+///iOS 14中期望的定位精度,只有在iOS 14的设备上才能生效
+enum AMapLocationAccuracyAuthorizationMode {
+  ///精确和模糊定位
+  FullAndReduceAccuracy,
 
-  ///指定定位是否会被系统自动暂停。默认为NO。
-  final bool pausesLocationUpdatesAutomatically;
+  ///精确定位
+  FullAccuracy,
 
-  ///是否允许后台定位。默认为NO。只在iOS 9.0及之后起作用。设置为YES的时候必须保证
-  /// Background Modes 中的 Location updates 处于选中状态，否则会抛出异常。
-  /// 由于iOS系统限制，需要在定位未开始之前或定位停止之后，修改该属性的值才会有效果。
-  final bool allowsBackgroundLocationUpdates;
+  ///模糊定位
+  ReduceAccuracy
+}
 
-  ///指定单次定位超时时间,默认为10s。最小值是2s。
-  /// 注意单次定位请求前设置。
-  /// 注意: 单次定位超时时间从确定了定位权限(非kCLAuthorizationStatusNotDetermined状态)后开始计算。
-  final int locationTimeout;
+///iOS 14中系统的定位类型信息
+enum AMapAccuracyAuthorization {
+  ///系统的精确定位类型
+  AMapAccuracyAuthorizationFullAccuracy,
 
-  ///指定单次定位逆地理超时时间,默认为5s。最小值是2s。注意单次定位请求前设置。
-  final int reGeocodeTimeout;
+  ///系统的模糊定位类型
+  AMapAccuracyAuthorizationReducedAccuracy,
 
-  ///连续定位是否返回逆地理信息，默认NO。
-  final bool locatingWithReGeocode;
-
-  ///检测是否存在虚拟定位风险，默认为NO，不检测。
-  /// \n注意:设置为YES时，单次定位通过 AMapLocatingCompletionBlock 的
-  /// error给出虚拟定位风险提示；
-  /// 连续定位通过 amapLocationManager:didFailWithError: 方法的
-  /// error给出虚拟定位风险提示。
-  /// error格式为error.domain==AMapLocationErrorDomain;
-  /// error.code==AMapLocationErrorRiskOfFakeLocation;
-  final bool detectRiskOfFakeLocation;
-
-  ///设定定位的最小更新距离。单位米，默认为 kCLDistanceFilterNone，表示只要检测到设备位置发生变化就会更新位置信息。
-  final double distanceFilter;
-
-  static final double kCLDistanceFilterNone = -1.0;
-
-  ////////////////////////////////////////////////////////////
-  /// 以下为通用属性
-  ////////////////////////////////////////////////////////////
-  //可选，设置逆地理信息的语言，默认值为默认语言（根据所在地区选择语言)
-  final GeoLanguage geoLanguage;
-
-  AMapLocationOption({
-    this.locationMode = AMapLocationMode.Hight_Accuracy,
-    this.gpsFirst = false,
-    this.httpTimeOut = 10000, //30有点长，特殊情况才需要这么长，改成10
-    this.interval = 2000,
-    this.needsAddress = true,
-    this.onceLocation = false,
-    this.onceLocationLatest = false,
-    this.locationProtocal = AMapLocationProtocol.HTTP,
-    this.sensorEnable = false,
-    this.wifiScan = true,
-    this.locationCacheEnable = true,
-    this.allowsBackgroundLocationUpdates = false,
-    this.desiredAccuracy =
-        CLLocationAccuracy.kCLLocationAccuracyBest, //精度越高，时间越久
-    this.locatingWithReGeocode = false,
-    this.locationTimeout = 5, //注意这里的单位为秒
-    this.pausesLocationUpdatesAutomatically = false,
-    this.reGeocodeTimeout = 5, //注意ios的时间单位是秒
-    this.detectRiskOfFakeLocation = false,
-    this.distanceFilter = -1.0,
-    this.geoLanguage = GeoLanguage.DEFAULT,
-  });
-
-  String getLocationProtocal() {
-    return locationProtocal == AMapLocationProtocol.HTTP ? "HTTP" : "HTTPS";
-  }
-
-  String getGeoLanguage() {
-    switch (geoLanguage) {
-      case GeoLanguage.DEFAULT:
-        return "DEFAULT";
-      case GeoLanguage.EN:
-        return "EN";
-      case GeoLanguage.ZH:
-        return "ZH";
-      default:
-        return "unknown";
-    }
-  }
-
-  String getLocationMode() {
-    switch (locationMode) {
-      case AMapLocationMode.Hight_Accuracy:
-        return "Hight_Accuracy";
-      case AMapLocationMode.Battery_Saving:
-        return "Battery_Saving";
-      case AMapLocationMode.Device_Sensors:
-        return "Device_Sensors";
-      default:
-        return "unknown";
-    }
-  }
-
-  String getDesiredAccuracy() {
-    switch (desiredAccuracy) {
-      case CLLocationAccuracy.kCLLocationAccuracyBest:
-        return "kCLLocationAccuracyBest";
-      case CLLocationAccuracy.kCLLocationAccuracyHundredMeters:
-        return "kCLLocationAccuracyHundredMeters";
-      case CLLocationAccuracy.kCLLocationAccuracyKilometer:
-        return "kCLLocationAccuracyKilometer";
-      case CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters:
-        return "kCLLocationAccuracyNearestTenMeters";
-      case CLLocationAccuracy.kCLLocationAccuracyThreeKilometers:
-        return "kCLLocationAccuracyThreeKilometers";
-      default:
-        return "unknown";
-    }
-  }
-
-  Map toMap() {
-    if (Platform.isAndroid) {
-      return {
-        "locationMode": getLocationMode(),
-        "gpsFirst": gpsFirst,
-        "httpTimeOut": httpTimeOut,
-        "interval": interval,
-        "needsAddress": needsAddress,
-        "onceLocation": onceLocation,
-        "onceLocationLatest": onceLocationLatest,
-        "locationProtocal": getLocationProtocal(),
-        "sensorEnable": sensorEnable,
-        "wifiScan": wifiScan,
-        "locationCacheEnable": locationCacheEnable,
-        "geoLanguage": getGeoLanguage(),
-      };
-    } else {
-      return {
-        "allowsBackgroundLocationUpdates": allowsBackgroundLocationUpdates,
-        "desiredAccuracy": getDesiredAccuracy(),
-        "locatingWithReGeocode": locatingWithReGeocode,
-        "locationTimeout": locationTimeout,
-        "pausesLocationUpdatesAutomatically":
-            pausesLocationUpdatesAutomatically,
-        "reGeocodeTimeout": reGeocodeTimeout,
-        "detectRiskOfFakeLocation": detectRiskOfFakeLocation,
-        "distanceFilter": distanceFilter,
-        "geoLanguage": getGeoLanguage(),
-      };
-    }
-  }
+  ///未知类型
+  AMapAccuracyAuthorizationInvalid
 }

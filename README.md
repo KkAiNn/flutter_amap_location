@@ -1,203 +1,166 @@
-@@ -1,184 +1,14 @@
-# amap_location
+##  前述 
 
-<p align="center">
-    <a href="https://pub.dartlang.org/packages/amap_location">
-        <img src="https://img.shields.io/pub/v/amap_location.svg" alt="pub package" />
-    </a>
-</p>
-# flutter_amap_location
+1. 高德定位Flutter插件
+2. 登录[高德开放平台官网](https://lbs.amap.com/api/)分别申请[Android端](https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key/)和[iOS端](https://lbs.amap.com/api/ios-location-sdk/guide/create-project/get-key)的key
+3. 如需了解高德定位SDK的相关功能，请参阅[Android定位SDK开发指南](https://lbs.amap.com/api/android-location-sdk/locationsummary/)和[iOS定位SDK开发指南](https://lbs.amap.com/api/ios-location-sdk/summary/)
 
 
-![android preview](https://github.com/jzoom/images/raw/master/location1.gif)
+## 使用高德定位Flutter插件
+* 请参考[在Flutter里使用Packages](https://flutter.cn/docs/development/packages-and-plugins/using-packages)， 引入amap_flutter_location插件
+* 引入高德定位SDK，Android平台请参考[Android Sudio配置工程](https://lbs.amap.com/api/android-location-sdk/guide/create-project/android-studio-create-project), iOS平台请参考[ios安装定位SDK](https://lbs.amap.com/api/ios-location-sdk/guide/create-project/cocoapods)
 
-![ios preview](https://github.com/jzoom/images/raw/master/location2.gif)
-
-高德地图定位flutter组件。
-
-目前实现直接获取定位和监听定位功能。
-
-注意：随着flutter版本的提升， 本项目也会随之更新，
-
-
-感谢群友 [@a396901990](https://github.com/a396901990) ,目前已经修复了因为使用simple_permissions导致ios不能编译使用的问题
-
-xcode10下如果出现 Multiple commands produce这个错误，参考这篇https://www.jianshu.com/p/8a8444acdca5,亲测可以解决。
-
-
-如果有疑问或者对这个库感兴趣，可以加qq群:854192563一起探讨
-
-A new flutter plugin project.
-
-## Getting Started
-
-### 集成高德地图定位android版本
-
-1、先申请一个apikey
-http://lbs.amap.com/api/android-sdk/guide/create-project/get-key
-
-2、修改 `你的项目目录/app/build.gradle`
-在`android/defaultConfig`节点修改`manifestPlaceholders`,新增高德地图key配置
-
+### 常见问题：
+1、[在iOS设备上运行或者运行iOS工程遇到： `Invalid `Podfile` file: cannot load such file - /flutter/packages/flutter_tools/bin/podhelper`](https://github.com/flutter/flutter/issues/59522)
 ```
-android {
-    .... 你的代码
-
-    defaultConfig {
-        .....
-        manifestPlaceholders = [
-                AMAP_KEY : "aa9f0cf8574400f2af0078392c556e25", /// 高德地图key
-        ]
-
-    }
-
-    ...你的代码
-
-    dependencies {
-        /// 注意这里需要在主项目增加一条依赖，否则可能发生编译不通过的情况
-        implementation 'com.amap.api:location:latest.integration'
-        ...你的代码
-    }
-
-
+$ rm ios/Podfile
+$ flutter build ios
 ```
 
 
-### 集成高德地图定位ios版本
-
-1、申请一个key
-http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
-
-直接在dart文件中设置key
-
+### 在需要的定位功能的页面中引入定位Flutter插件的dart类
+``` Dart
+import 'package:amap_flutter_location/amap_flutter_location.dart';
+import 'package: amap_flutter_location/amap_location_option.dart';
 ```
-import 'package:amap_location/amap_location.dart';
-   
-   void main(){     
-       AMapLocationClient.setApiKey("你的key");
-     runApp(new MyApp());
-   }
+## 接口说明
+
+### 设置定位参数
+``` Dart
+ /// 设置定位参数
+ void setLocationOption(AMapLocationOption locationOption)
 ```
+> 将您设置的参数传递到原生端对外接口，目前支持以下定位参数
 
-2、在info.plist中增加:
+``` Dart
+ //// 是否需要地址信息，默认true
+  bool needAddress = true;
 
-注意必须要描述清楚app使用定位的目的，苹果审核的时候要看，
-如果写的不清楚，可能会被苹果拒绝上架，作者有过几次惨痛经历 :(
+  ///逆地理信息语言类型<br>
+  ///默认[GeoLanguage.DEFAULT] 自动适配<br>
+  ///可选值：<br>
+  ///<li>[GeoLanguage.DEFAULT] 自动适配</li>
+  ///<li>[GeoLanguage.EN] 英文</li>
+  ///<li>[GeoLanguage.ZH] 中文</li>
+  GeoLanguage geoLanguage;
 
+  ///是否单次定位
+  ///默认值：false
+  bool onceLocation = false;
+
+  ///Android端定位模式, 只在Android系统上有效<br>
+  ///默认值：[AMapLocationMode.Hight_Accuracy]<br>
+  ///可选值：<br>
+  ///<li>[AMapLocationMode.Battery_Saving]</li>
+  ///<li>[AMapLocationMode.Device_Sensors]</li>
+  ///<li>[AMapLocationMode.Hight_Accuracy]</li>
+  AMapLocationMode locationMode;
+
+  ///Android端定位间隔<br>
+  ///单位：毫秒<br>
+  ///默认：2000毫秒<br>
+  int locationInterval = 2000;
+
+  ///iOS端是否允许系统暂停定位<br>
+  ///默认：false
+  bool pausesLocationUpdatesAutomatically = false;
+
+  /// iOS端期望的定位精度， 只在iOS端有效<br>
+  /// 默认值：最高精度<br>
+  /// 可选值：<br>
+  /// <li>[DesiredAccuracy.Best] 最高精度</li>
+  /// <li>[DesiredAccuracy.BestForNavigation] 适用于导航场景的高精度 </li>
+  /// <li>[DesiredAccuracy.NearestTenMeters] 10米 </li>
+  /// <li>[DesiredAccuracy.Kilometer] 1000米</li>
+  /// <li>[DesiredAccuracy.ThreeKilometers] 3000米</li>
+  DesiredAccuracy desiredAccuracy = DesiredAccuracy.Best;
+
+  /// iOS端定位最小更新距离<br>
+  /// 单位：米<br>
+  /// 默认值：-1，不做限制<br>
+  double distanceFilter = -1;
+
+  ///iOS 14中设置期望的定位精度权限
+  AMapLocationAccuracyAuthorizationMode desiredLocationAccuracyAuthorizationMode = AMapLocationAccuracyAuthorizationMode.FullAccuracy;
+
+  /// iOS 14中定位精度权限由模糊定位升级到精确定位时，需要用到的场景key fullAccuracyPurposeKey 这个key要和plist中的配置一样
+  String fullAccuracyPurposeKey = "";
 ```
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>要用定位</string>
+### 开始定位
+``` Dart
+void startLocation()
 ```
-
-
-## 怎么用
-
-先导入dart包
-修改pubspec.yaml，增加依赖：
-
+### 停止定位
+``` Dart
+void stopLocation()
 ```
-dependencies:
-  amap_location: 
+### 销毁定位
+> 高德定位Flutter插件，支持多实例，请在weidet执行dispose()时调用当前定位插件的销毁方法
+``` Dart
+void destroy()
 ```
+### 定位结果获取
+> 原生端以键值对map的形式回传定位结果到Flutter端, 通过onLoationChanged返回定位结果
 
-
-在要用的地方导入:
-
-```
-import 'package:amap_location/amap_location.dart';
-```
-
-先启动一下
-
-```
- await AMapLocationClient.startup(new AMapLocationOption( desiredAccuracy:CLLocationAccuracy.kCLLocationAccuracyHundredMeters  ));
-
-```
-
-直接获取定位:
-
-```
-await AMapLocationClient.getLocation(true)
-```
-监听定位
-
-```
-
-    AMapLocationClient.onLocationUpate.listen((AMapLocation loc){
-      if(!mounted)return;
-      setState(() {
-         ...
-      });
-    });
-
-    AMapLocationClient.startLocation();
-
-```
-停止监听定位
-```
-AMapLocationClient.stopLocation();
-
-```
-
-不要忘了在app生命周期结束的时候关闭
-```
-@override
-  void dispose() {
-    //注意这里关闭
-    AMapLocationClient.shutdown();
-    super.dispose();
-  }
-```
-
-
-## 注意点：
-
->在android6以上最好手动获取定位权限
-
-在example中以simple_permissions这个库为例:
-
-```
-void _checkPersmission() async{
-    bool hasPermission = await SimplePermissions.checkPermission(Permission.WhenInUseLocation);
-    if(!hasPermission){
-      bool requestPermissionResult = await SimplePermissions.requestPermission(Permission.WhenInUseLocation);
-      if(!requestPermissionResult){
-        Alert.alert(context,title: "申请定位权限失败");
-        return;
-      }
-    }
-    AMapLocationClient.onLocationUpate.listen((AMapLocation loc) {
-      if (!mounted) return;
-      setState(() {
-        location = getLocationStr(loc);
-      });
-    });
-
-    AMapLocationClient.startLocation();
-  }
+``` Dart
+Stream<Map<String, Object>> onLocationChanged(）
 ```
 
+> 注册定位结果监听
+
+``` Dart
+
+_locationPlugin
+        .onLocationChanged()
+        .listen((Map<String, Object> result) {
+          ///result即为定位结果
+        }
+```
+ 
+ 定位结果是以map的形式返回的，具体内容为
+ ``` Dart
+ 
+ /// `callbackTime`:回调时间，格式为"yyyy-MM-dd HH:mm:ss"
+  ///
+  /// `locationTime`:定位时间， 格式为"yyyy-MM-dd HH:mm:ss"
+  ///
+  /// `locationType`:  定位类型， 具体类型可以参考https://lbs.amap.com/api/android-location-sdk/guide/utilities/location-type
+  ///
+  /// `latitude`:纬度
+  ///
+  /// `longitude`:精度
+  ///
+  /// `accuracy`:精确度
+  ///
+  /// `altitude`:海拔, android上只有locationType==1时才会有值
+  ///
+  /// `bearing`: 角度，android上只有locationType==1时才会有值
+  ///
+  /// `speed`:速度， android上只有locationType==1时才会有值
+  ///
+  /// `country`: 国家，android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `province`: 省，android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `city`: 城市，android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `district`: 城镇（区），android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `street`: 街道，android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `streetNumber`: 门牌号，android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `cityCode`: 城市编码，android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `adCode`: 区域编码， android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `address`: 地址信息， android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `description`: 位置语义， android上只有通过[AMapLocationOption.needAddress]为true时才有可能返回值
+  ///
+  /// `errorCode`: 错误码，当定位失败时才会返回对应的错误码， 具体错误请参考：https://lbs.amap.com/api/android-location-sdk/guide/utilities/errorcode
+  ///
+  /// `errorInfo`: 错误信息， 当定位失败时才会返回
+  
+```
 
 
-
-## 特性
-
-* IOS
-* Android
-* 直接获取定位
-* 监听定位改变
-
-
-## 下个版本
-
-* 地理围栏监听
-
-
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.io/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
