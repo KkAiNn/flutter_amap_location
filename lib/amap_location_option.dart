@@ -15,13 +15,13 @@ enum CLLocationAccuracy {
   kCLLocationAccuracyNearestTenMeters,
   kCLLocationAccuracyHundredMeters,
   kCLLocationAccuracyKilometer,
-  kCLLocationAccuracyThreeKilometers
+  kCLLocationAccuracyThreeKilometers,
 }
 
 class AMapLocationOption {
   ////////////////////////////////////////////////////////////
   ///  以下属性为android特有
-////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
 
   //可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
   final AMapLocationMode locationMode;
@@ -105,27 +105,27 @@ class AMapLocationOption {
   final GeoLanguage geoLanguage;
 
   AMapLocationOption({
-    this.locationMode: AMapLocationMode.Hight_Accuracy,
-    this.gpsFirst: false,
-    this.httpTimeOut: 10000, //30有点长，特殊情况才需要这么长，改成10
-    this.interval: 2000,
-    this.needsAddress: true,
-    this.onceLocation: false,
-    this.onceLocationLatest: false,
-    this.locationProtocal: AMapLocationProtocol.HTTP,
-    this.sensorEnable: false,
-    this.wifiScan: true,
-    this.locationCacheEnable: true,
-    this.allowsBackgroundLocationUpdates: false,
-    this.desiredAccuracy:
+    this.locationMode = AMapLocationMode.Hight_Accuracy,
+    this.gpsFirst = false,
+    this.httpTimeOut = 10000, //30有点长，特殊情况才需要这么长，改成10
+    this.interval = 2000,
+    this.needsAddress = true,
+    this.onceLocation = false,
+    this.onceLocationLatest = false,
+    this.locationProtocal = AMapLocationProtocol.HTTP,
+    this.sensorEnable = false,
+    this.wifiScan = true,
+    this.locationCacheEnable = true,
+    this.allowsBackgroundLocationUpdates = false,
+    this.desiredAccuracy =
         CLLocationAccuracy.kCLLocationAccuracyBest, //精度越高，时间越久
-    this.locatingWithReGeocode: false,
-    this.locationTimeout: 5, //注意这里的单位为秒
-    this.pausesLocationUpdatesAutomatically: false,
-    this.reGeocodeTimeout: 5, //注意ios的时间单位是秒
-    this.detectRiskOfFakeLocation: false,
-    this.distanceFilter: -1.0,
-    this.geoLanguage: GeoLanguage.DEFAULT,
+    this.locatingWithReGeocode = false,
+    this.locationTimeout = 5, //注意这里的单位为秒
+    this.pausesLocationUpdatesAutomatically = false,
+    this.reGeocodeTimeout = 5, //注意ios的时间单位是秒
+    this.detectRiskOfFakeLocation = false,
+    this.distanceFilter = -1.0,
+    this.geoLanguage = GeoLanguage.DEFAULT,
   });
 
   String getLocationProtocal() {
@@ -189,7 +189,7 @@ class AMapLocationOption {
         "sensorEnable": sensorEnable,
         "wifiScan": wifiScan,
         "locationCacheEnable": locationCacheEnable,
-        "geoLanguage": getGeoLanguage()
+        "geoLanguage": getGeoLanguage(),
       };
     } else {
       return {
@@ -202,7 +202,7 @@ class AMapLocationOption {
         "reGeocodeTimeout": reGeocodeTimeout,
         "detectRiskOfFakeLocation": detectRiskOfFakeLocation,
         "distanceFilter": distanceFilter,
-        "geoLanguage": getGeoLanguage()
+        "geoLanguage": getGeoLanguage(),
       };
     }
   }
